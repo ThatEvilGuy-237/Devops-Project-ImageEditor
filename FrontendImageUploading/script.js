@@ -1,4 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // API base URL
+    const API_URL = 'http://localhost:3000';
+
     // Main image elements
     const mainDropZone = document.getElementById('mainDropZone');
     const mainFileInput = document.getElementById('mainFileInput');
@@ -198,67 +201,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     resizeObserver.observe(imagePreview);
 
-    uploadBtn.addEventListener('click', async () => {
-        if (!mainFile) {
-            showMessage('Please select a main image first', 'error');
-            return;
-        }
-
-        const formData = new FormData();
-        formData.append('image', mainFile);
-        if (overlayFile) {
-            formData.append('overlay', overlayFile);
-            formData.append('overlayScale', overlayScale.value);
-            formData.append('overlayX', overlayX.value);
-            formData.append('overlayY', overlayY.value);
-        }
-        
-        if (imageName.value) {
-            formData.append('name', imageName.value);
-        }
-        
-        if (imageText.value) {
-            formData.append('text', imageText.value);
-            formData.append('fontSize', fontSize.value);
-            formData.append('textPadding', textPadding.value);
-            formData.append('verticalPosition', verticalPosition.value);
-        }
-
-        try {
-            uploadBtn.disabled = true;
-            uploadBtn.textContent = 'Uploading...';
-
-            const response = await fetch(`${process.env.SERVER_URL}/api/images`, {
-                method: 'POST',
-                body: formData
-            });
-
-            const data = await response.json();
-
-            if (response.ok) {
-                showMessage('Image uploaded successfully!', 'success');
-                // Add to current session uploads
-                currentSessionUploads.unshift({
-                    url: data.url,
-                    name: data.name,
-                    uploadDate: new Date()
-                });
-                updateRecentUploads();
-                resetForm();
-            } else {
-                throw new Error(data.error || 'Upload failed');
-            }
-        } catch (error) {
-            showMessage(error.message, 'error');
-        } finally {
-            uploadBtn.disabled = false;
-            uploadBtn.textContent = 'Upload Image';
-        }
-    });
-
     async function loadRecentImages() {
         try {
-            const response = await fetch(`${process.env.SERVER_URL}/api/images?view=recent&page=1&pageSize=8`);
+            const response = await fetch(`${API_URL}/api/images?view=recent&page=1&pageSize=8`);
             const data = await response.json();
 
             recentImages.innerHTML = '';
@@ -267,14 +212,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 imageCard.className = 'gallery-card';
                 
                 const img = document.createElement('img');
-                img.src = image.url.replace('/api/api/', '/api/');
+                img.src = image.url;
                 img.alt = image.name;
                 img.loading = 'lazy';
 
                 imageCard.appendChild(img);
                 imageCard.addEventListener('click', () => {
                     modal.style.display = "block";
-                    modalImg.src = image.url.replace('/api/api/', '/api/');
+                    modalImg.src = image.url;
                     modalImg.dataset.imageName = image.name;
                 });
 
@@ -352,6 +297,64 @@ document.addEventListener('DOMContentLoaded', () => {
         overlayX.value = 50;
         overlayY.value = 50;
     }
+
+    uploadBtn.addEventListener('click', async () => {
+        if (!mainFile) {
+            showMessage('Please select a main image first', 'error');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('image', mainFile);
+        if (overlayFile) {
+            formData.append('overlay', overlayFile);
+            formData.append('overlayScale', overlayScale.value);
+            formData.append('overlayX', overlayX.value);
+            formData.append('overlayY', overlayY.value);
+        }
+        
+        if (imageName.value) {
+            formData.append('name', imageName.value);
+        }
+        
+        if (imageText.value) {
+            formData.append('text', imageText.value);
+            formData.append('fontSize', fontSize.value);
+            formData.append('textPadding', textPadding.value);
+            formData.append('verticalPosition', verticalPosition.value);
+        }
+
+        try {
+            uploadBtn.disabled = true;
+            uploadBtn.textContent = 'Uploading...';
+
+            const response = await fetch(`${API_URL}/api/images`, {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                showMessage('Image uploaded successfully!', 'success');
+                // Add to current session uploads
+                currentSessionUploads.unshift({
+                    url: data.url,
+                    name: data.name,
+                    uploadDate: new Date()
+                });
+                updateRecentUploads();
+                resetForm();
+            } else {
+                throw new Error(data.error || 'Upload failed');
+            }
+        } catch (error) {
+            showMessage(error.message, 'error');
+        } finally {
+            uploadBtn.disabled = false;
+            uploadBtn.textContent = 'Upload Image';
+        }
+    });
 
     // Initialize
     uploadBtn.disabled = true;

@@ -1,4 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // API base URL
+    const API_URL = 'http://localhost:3000';
+
     const searchInput = document.getElementById('searchInput');
     const searchBtn = document.getElementById('searchBtn');
     const viewAllBtn = document.getElementById('viewAllBtn');
@@ -58,7 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (confirm('Are you sure you want to delete this image?')) {
             try {
-                const response = await fetch(`http://localhost:3000/api/images/${imageName}`, {
+                const response = await fetch(`${API_URL}/api/images/${imageName}`, {
                     method: 'DELETE'
                 });
 
@@ -87,7 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 params.append('search', currentSearch);
             }
 
-            const response = await fetch(`http://localhost:3000/api/images?${params}`);
+            const response = await fetch(`${API_URL}/api/images?${params}`);
             const data = await response.json();
 
             if (clear) {
@@ -110,7 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
         card.className = 'gallery-card';
 
         const img = document.createElement('img');
-        img.src = image.url.replace('/api/api/', '/api/');
+        img.src = image.url;
         img.alt = image.name;
         img.loading = 'lazy';
 
@@ -123,7 +126,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         card.addEventListener('click', () => {
             modal.style.display = "block";
-            modalImg.src = image.url.replace('/api/api/', '/api/');
+            modalImg.src = image.url;
             modalImg.dataset.imageName = image.name;
             imageDetails.textContent = `Name: ${image.name}
             Uploaded: ${new Date(image.uploadDate).toLocaleString()}`;
