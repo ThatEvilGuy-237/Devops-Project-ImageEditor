@@ -4,8 +4,9 @@ const multer = require('multer');
 const sharp = require('sharp');
 const path = require('path');
 const fs = require('fs');
+const ImageModel = require('../models/imageModel');
 
-// Configure multer for multiple image uploads
+// Configure multer for file upload
 const storage = multer.memoryStorage();
 const upload = multer({
     storage: storage,
@@ -62,42 +63,17 @@ router.get('/images', async (req, res) => {
         const search = req.query.search || '';
         const view = req.query.view || 'all';
 
-        // Get list of files in upload directory
-        const files = fs.readdirSync(uploadDir);
-        
-        // Filter and sort files
-        let images = files
-            .filter(file => {
-                const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(file);
-                const matchesSearch = search ? file.toLowerCase().includes(search.toLowerCase()) : true;
-                return isImage && matchesSearch;
-            })
-            .map(file => {
-                const stats = fs.statSync(path.join(uploadDir, file));
-                return {
-                    name: file,
-                    url: `${process.env.SERVER_URL}/api/images/${file}`,
-                    uploadDate: stats.mtime
-                };
-            })
-            .sort((a, b) => b.uploadDate - a.uploadDate);
+        console.log('Getting images with params:', { page, pageSize, search, view });
 
-        // Apply view filter
+        let result;
         if (view === 'recent') {
-            images = images.slice(0, 20); // Show only last 20 images
+            result = await ImageModel.getRecent(8);
+        } else {
+            result = await ImageModel.getAll(page, pageSize, search);
         }
 
-        // Apply pagination
-        const startIndex = (page - 1) * pageSize;
-        const endIndex = startIndex + pageSize;
-        const paginatedImages = images.slice(startIndex, endIndex);
-        const hasMore = endIndex < images.length;
-
-        res.json({
-            images: paginatedImages,
-            hasMore,
-            total: images.length
-        });
+        console.log('Sending response:', result);
+        res.json(result);
     } catch (error) {
         console.error('Error getting images:', error);
         res.status(500).json({ error: 'Error getting images' });
@@ -125,6 +101,16 @@ router.post('/images', upload, async (req, res) => {
         let sharpImage = sharp(imageBuffer);
         const metadata = await sharpImage.metadata();
 
+        console.log('Image metadata:', metadata);
+
+        // Prepare settings object
+        const settings = {
+            dimensions: {
+                width: metadata.width,
+                height: metadata.height
+            }
+        };
+
         // Array to hold composite operations
         const compositeOperations = [];
 
@@ -133,6 +119,14 @@ router.post('/images', upload, async (req, res) => {
             const overlayScale = parseFloat(req.body.overlayScale) / 100 || 1;
             const overlayX = parseInt(req.body.overlayX) || 50;
             const overlayY = parseInt(req.body.overlayY) || 50;
+
+            settings.overlay = {
+                scale: overlayScale,
+                position: {
+                    x: overlayX,
+                    y: overlayY
+                }
+            };
 
             // Resize overlay image
             const overlayBuffer = await sharp(overlayImage.buffer)
@@ -157,7 +151,14 @@ router.post('/images', upload, async (req, res) => {
             const textPadding = parseInt(req.body.textPadding) || 10;
             const verticalPosition = parseInt(req.body.verticalPosition) || 95;
             
-            const svgText = `
+            settings.text = {
+                content: req.body.text,
+                fontSize,
+                padding: textPadding,
+                position: verticalPosition
+            };
+
+            const svgText = Buffer.from(`
                 <svg width="${metadata.width}" height="${metadata.height}">
                     <defs>
                         <filter id="outline" x="-20%" y="-20%" width="140%" height="140%">
@@ -187,12 +188,18 @@ router.post('/images', upload, async (req, res) => {
                         class="title"
                         transform="translate(0, -${fontSize/2})"
                     >${req.body.text}</text>
-                </svg>`;
+                </svg>`);
+
+            // Create a new Sharp instance for the SVG
+            const svgBuffer = await sharp(svgText)
+                .resize(metadata.width, metadata.height, { fit: 'fill' })
+                .toBuffer();
 
             compositeOperations.push({
-                input: Buffer.from(svgText),
+                input: svgBuffer,
                 top: 0,
-                left: 0
+                left: 0,
+                blend: 'over'
             });
         }
 
@@ -209,10 +216,31 @@ router.post('/images', upload, async (req, res) => {
             .toFormat(fileExt.substring(1))
             .toFile(outputPath);
 
+        // Save to database
+        const imageData = {
+            filename: imageName,
+            originalName: mainImage.originalname,
+            path: outputPath,
+            dimensions: settings.dimensions || null,
+            overlay: settings.overlay || null,
+            text: settings.text || null
+        };
+
+        console.log('Saving image data to database:', JSON.stringify(imageData, null, 2));
+
+        try {
+            await ImageModel.create(imageData);
+            console.log('Successfully saved image data to database');
+        } catch (error) {
+            console.error('Error saving to database:', error);
+            // Continue even if database save fails
+        }
+
         res.json({
             message: 'Image uploaded successfully',
             name: imageName,
-            url: `${process.env.SERVER_URL}/api/images/${imageName}`
+            url: `${process.env.SERVER_URL}/api/images/${imageName}`,
+            settings: settings
         });
     } catch (error) {
         console.error('Error processing image:', error);
@@ -229,6 +257,16 @@ router.delete('/images/:name', async (req, res) => {
             return res.status(404).json({ error: 'Image not found' });
         }
 
+        try {
+            // Delete from database first
+            await ImageModel.delete(req.params.name);
+            console.log('Successfully deleted image from database');
+        } catch (error) {
+            console.error('Error deleting from database:', error);
+            // Continue even if database delete fails
+        }
+
+        // Delete file
         fs.unlinkSync(imagePath);
         res.json({ message: 'Image deleted successfully' });
     } catch (error) {

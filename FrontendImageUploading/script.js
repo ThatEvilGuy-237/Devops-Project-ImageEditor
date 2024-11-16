@@ -25,6 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const modal = document.getElementById('imageModal');
     const modalImg = document.getElementById('modalImage');
     const closeModal = document.querySelector('.close-modal');
+    const imageDetails = document.getElementById('imageDetails');
 
     let mainFile = null;
     let overlayFile = null;
@@ -201,62 +202,116 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     resizeObserver.observe(imagePreview);
 
+    function updateRecentUploads() {
+        recentImages.innerHTML = '';
+        loadRecentImages();
+    }
+
     async function loadRecentImages() {
         try {
             const response = await fetch(`${API_URL}/api/images?view=recent&page=1&pageSize=8`);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
             const data = await response.json();
+            console.log('Received data from API:', JSON.stringify(data, null, 2));
 
             recentImages.innerHTML = '';
-            data.images.forEach(image => {
-                const imageCard = document.createElement('div');
-                imageCard.className = 'gallery-card';
-                
-                const img = document.createElement('img');
-                img.src = image.url;
-                img.alt = image.name;
-                img.loading = 'lazy';
+            
+            if (data && data.images) {
+                data.images.forEach(image => {
+                    console.log('Processing image:', JSON.stringify(image, null, 2));
+                    const imageCard = document.createElement('div');
+                    imageCard.className = 'gallery-card';
+                    
+                    const img = document.createElement('img');
+                    img.src = image.url;
+                    img.alt = image.name;
+                    img.loading = 'lazy';
 
-                imageCard.appendChild(img);
-                imageCard.addEventListener('click', () => {
-                    modal.style.display = "block";
-                    modalImg.src = image.url;
-                    modalImg.dataset.imageName = image.name;
+                    imageCard.appendChild(img);
+                    imageCard.addEventListener('click', () => {
+                        console.log('Displaying image details:', JSON.stringify(image, null, 2));
+                        modal.style.display = "block";
+                        modalImg.src = image.url;
+                        modalImg.dataset.imageName = image.name;
+                        formatDetails(image);
+                    });
+
+                    recentImages.appendChild(imageCard);
                 });
-
-                recentImages.appendChild(imageCard);
-            });
+            } else {
+                console.error('Invalid data format:', data);
+                recentImages.innerHTML = '<div class="error-message">No recent images available.</div>';
+            }
         } catch (error) {
             console.error('Error loading recent images:', error);
+            recentImages.innerHTML = '<div class="error-message">Error loading recent images. Please try again later.</div>';
         }
     }
 
-    function updateRecentUploads() {
-        recentImages.innerHTML = '';
-        currentSessionUploads.forEach(image => {
-            const imageCard = document.createElement('div');
-            imageCard.className = 'gallery-card';
-            
-            const img = document.createElement('img');
-            img.src = image.url;
-            img.alt = image.name;
-            img.loading = 'lazy';
+    function formatDetails(image) {
+        console.log('Formatting details for image:', JSON.stringify(image, null, 2));
+        // Basic details
+        const imageDetails = document.getElementById('imageDetails');
+        imageDetails.innerHTML = `
+            <table>
+                <tr><td>Name:</td><td>${image.name}</td></tr>
+                <tr><td>Uploaded:</td><td>${new Date(image.uploadDate).toLocaleString()}</td></tr>
+            </table>
+        `;
 
-            imageCard.appendChild(img);
-            imageCard.addEventListener('click', () => {
-                modal.style.display = "block";
-                modalImg.src = image.url;
-                modalImg.dataset.imageName = image.name;
-            });
+        // Settings
+        if (image.settings) {
+            const dimensionsContent = document.querySelector('.dimensions-settings .settings-content');
+            const overlayContent = document.querySelector('.overlay-settings .settings-content');
+            const textContent = document.querySelector('.text-settings .settings-content');
 
-            recentImages.appendChild(imageCard);
-        });
+            // Clear previous content
+            dimensionsContent.innerHTML = '';
+            overlayContent.innerHTML = '';
+            textContent.innerHTML = '';
 
-        // Update section visibility
-        const recentUploadsSection = document.querySelector('.recent-uploads');
-        if (currentSessionUploads.length > 0) {
-            recentUploadsSection.style.display = 'block';
-        } else {
-            recentUploadsSection.style.display = 'none';
+            // Dimensions
+            if (image.settings.dimensions) {
+                dimensionsContent.innerHTML = `
+                    <table>
+                        <tr><td>Width:</td><td>${image.settings.dimensions.width}px</td></tr>
+                        <tr><td>Height:</td><td>${image.settings.dimensions.height}px</td></tr>
+                    </table>
+                `;
+            }
+
+            // Overlay
+            if (image.settings.overlay) {
+                overlayContent.innerHTML = `
+                    <table>
+                        <tr><td>Scale:</td><td>${image.settings.overlay.scale * 100}%</td></tr>
+                        <tr><td>Position X:</td><td>${image.settings.overlay.position.x}%</td></tr>
+                        <tr><td>Position Y:</td><td>${image.settings.overlay.position.y}%</td></tr>
+                    </table>
+                `;
+            }
+
+            // Text
+            if (image.settings.text) {
+                textContent.innerHTML = `
+                    <table>
+                        <tr><td>Content:</td><td>"${image.settings.text.content}"</td></tr>
+                        <tr><td>Font Size:</td><td>${image.settings.text.fontSize}px</td></tr>
+                        <tr><td>Padding:</td><td>${image.settings.text.padding}%</td></tr>
+                        <tr><td>Position:</td><td>${image.settings.text.position}%</td></tr>
+                    </table>
+                `;
+            }
+
+            // Show/hide settings groups based on content
+            document.querySelector('.dimensions-settings').style.display = 
+                image.settings.dimensions ? 'block' : 'none';
+            document.querySelector('.overlay-settings').style.display = 
+                image.settings.overlay ? 'block' : 'none';
+            document.querySelector('.text-settings').style.display = 
+                image.settings.text ? 'block' : 'none';
         }
     }
 

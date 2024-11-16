@@ -78,6 +78,71 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    function formatDetails(image) {
+        console.log('Formatting details for image:', JSON.stringify(image, null, 2));
+        // Basic details
+        const imageDetails = document.getElementById('imageDetails');
+        imageDetails.innerHTML = `
+            <table>
+                <tr><td>Name:</td><td>${image.name}</td></tr>
+                <tr><td>Uploaded:</td><td>${new Date(image.uploadDate).toLocaleString()}</td></tr>
+            </table>
+        `;
+
+        // Settings
+        if (image.settings) {
+            const dimensionsContent = document.querySelector('.dimensions-settings .settings-content');
+            const overlayContent = document.querySelector('.overlay-settings .settings-content');
+            const textContent = document.querySelector('.text-settings .settings-content');
+
+            // Clear previous content
+            dimensionsContent.innerHTML = '';
+            overlayContent.innerHTML = '';
+            textContent.innerHTML = '';
+
+            // Dimensions
+            if (image.settings.dimensions) {
+                dimensionsContent.innerHTML = `
+                    <table>
+                        <tr><td>Width:</td><td>${image.settings.dimensions.width}px</td></tr>
+                        <tr><td>Height:</td><td>${image.settings.dimensions.height}px</td></tr>
+                    </table>
+                `;
+            }
+
+            // Overlay
+            if (image.settings.overlay) {
+                overlayContent.innerHTML = `
+                    <table>
+                        <tr><td>Scale:</td><td>${image.settings.overlay.scale * 100}%</td></tr>
+                        <tr><td>Position X:</td><td>${image.settings.overlay.position.x}%</td></tr>
+                        <tr><td>Position Y:</td><td>${image.settings.overlay.position.y}%</td></tr>
+                    </table>
+                `;
+            }
+
+            // Text
+            if (image.settings.text) {
+                textContent.innerHTML = `
+                    <table>
+                        <tr><td>Content:</td><td>"${image.settings.text.content}"</td></tr>
+                        <tr><td>Font Size:</td><td>${image.settings.text.fontSize}px</td></tr>
+                        <tr><td>Padding:</td><td>${image.settings.text.padding}%</td></tr>
+                        <tr><td>Position:</td><td>${image.settings.text.position}%</td></tr>
+                    </table>
+                `;
+            }
+
+            // Show/hide settings groups based on content
+            document.querySelector('.dimensions-settings').style.display = 
+                image.settings.dimensions ? 'block' : 'none';
+            document.querySelector('.overlay-settings').style.display = 
+                image.settings.overlay ? 'block' : 'none';
+            document.querySelector('.text-settings').style.display = 
+                image.settings.text ? 'block' : 'none';
+        }
+    }
+
     async function loadImages(clear = false) {
         try {
             const params = new URLSearchParams({
@@ -91,20 +156,37 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const response = await fetch(`${API_URL}/api/images?${params}`);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
             const data = await response.json();
+            console.log('Received data from API:', JSON.stringify(data, null, 2));
 
             if (clear) {
                 galleryGrid.innerHTML = '';
             }
 
-            data.images.forEach(image => {
-                const imageCard = createImageCard(image);
-                galleryGrid.appendChild(imageCard);
-            });
+            if (data && data.images) {
+                data.images.forEach(image => {
+                    console.log('Processing image:', JSON.stringify(image, null, 2));
+                    const imageCard = createImageCard(image);
+                    galleryGrid.appendChild(imageCard);
+                });
 
-            loadMoreBtn.style.display = data.hasMore ? 'block' : 'none';
+                loadMoreBtn.style.display = data.hasMore ? 'block' : 'none';
+            } else {
+                console.error('Invalid data format:', data);
+                loadMoreBtn.style.display = 'none';
+                if (clear) {
+                    galleryGrid.innerHTML = '<div class="error-message">No images found.</div>';
+                }
+            }
         } catch (error) {
             console.error('Error loading images:', error);
+            loadMoreBtn.style.display = 'none';
+            if (clear) {
+                galleryGrid.innerHTML = '<div class="error-message">Error loading images. Please try again later.</div>';
+            }
         }
     }
 
@@ -125,11 +207,11 @@ document.addEventListener('DOMContentLoaded', () => {
         card.appendChild(details);
 
         card.addEventListener('click', () => {
+            console.log('Displaying image details:', JSON.stringify(image, null, 2));
             modal.style.display = "block";
             modalImg.src = image.url;
             modalImg.dataset.imageName = image.name;
-            imageDetails.textContent = `Name: ${image.name}
-            Uploaded: ${new Date(image.uploadDate).toLocaleString()}`;
+            formatDetails(image);
         });
 
         return card;
