@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Upload & Processing</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <nav class="main-nav">
+            <h1>Image Upload & Processing</h1>
+            <a href="gallery.html" class="nav-link">Image Gallery</a>
+        </nav>
+
+        <div class="main-content">
+            <div class="left-panel">
+                <div class="preview-section">
+                    <h2>Preview</h2>
+                    <div class="image-preview" id="imagePreview">
+                        <p>No image selected</p>
+                    </div>
+                </div>
+
+                <div class="recent-uploads">
+                    <h2>Recent Uploads</h2>
+                    <div class="recent-images" id="recentImages">
+                        <!-- Recent images will be added here -->
+                    </div>
+                </div>
+            </div>
+            
+            <div class="upload-section">
+                <div class="image-uploads">
+                    <div class="main-image">
+                        <h3>Main Image</h3>
+                        <div class="drop-zone" id="mainDropZone">
+                            <input type="file" id="mainFileInput" accept="image/*" class="file-input">
+                            <div class="drop-zone-text">
+                                <p>Drag & Drop main image here or click to upload</p>
+                                <span class="small-text">Supported formats: JPG, PNG, GIF</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="overlay-image">
+                        <h3>Overlay Image</h3>
+                        <div class="drop-zone" id="overlayDropZone">
+                            <input type="file" id="overlayFileInput" accept="image/*" class="file-input">
+                            <div class="drop-zone-text">
+                                <p>Drag & Drop overlay image here or click to upload</p>
+                                <span class="small-text">Supported formats: JPG, PNG, GIF</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="overlay-controls" id="overlayControls">
+                    <h3>Overlay Image Controls</h3>
+                    <div class="form-group">
+                        <label for="overlayScale">Scale (%):</label>
+                        <input type="range" id="overlayScale" min="10" max="200" value="100" class="slider">
+                        <div class="slider-labels">
+                            <span>10%</span>
+                            <span>200%</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="overlayX">Horizontal Position (%):</label>
+                        <input type="range" id="overlayX" min="0" max="100" value="50" class="slider">
+                        <div class="slider-labels">
+                            <span>Left</span>
+                            <span>Right</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="overlayY">Vertical Position (%):</label>
+                        <input type="range" id="overlayY" min="0" max="100" value="50" class="slider">
+                        <div class="slider-labels">
+                            <span>Top</span>
+                            <span>Bottom</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="imageName">Image Name:</label>
+                    <input type="text" id="imageName" placeholder="Enter image name (optional)">
+                </div>
+
+                <div class="form-group">
+                    <label for="imageText">Text Overlay:</label>
+                    <input type="text" id="imageText" placeholder="Enter text to add to image (optional)">
+                </div>
+
+                <div class="form-group">
+                    <label for="fontSize">Font Size (px):</label>
+                    <input type="number" id="fontSize" value="40" min="10" max="200">
+                </div>
+
+                <div class="form-group">
+                    <label for="textPadding">Text Padding from Edges (%):</label>
+                    <input type="number" id="textPadding" value="10" min="0" max="45">
+                </div>
+
+                <div class="form-group">
+                    <label for="verticalPosition">Text Vertical Position (%):</label>
+                    <input type="range" id="verticalPosition" min="0" max="100" value="95" class="slider">
+                    <div class="slider-labels">
+                        <span>Top</span>
+                        <span>Bottom</span>
+                    </div>
+                </div>
+
+                <button id="uploadBtn" class="upload-btn">Upload Image</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for full-size image view -->
+    <div id="imageModal" class="modal">
+        <span class="close-modal">&times;</span>
+        <img class="modal-content" id="modalImage">
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
