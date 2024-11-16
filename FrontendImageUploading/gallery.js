@@ -2,7 +2,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const searchInput = document.getElementById('searchInput');
     const searchBtn = document.getElementById('searchBtn');
     const viewAllBtn = document.getElementById('viewAllBtn');
-    const viewRecentBtn = document.getElementById('viewRecentBtn');
     const galleryGrid = document.getElementById('galleryGrid');
     const loadMoreBtn = document.getElementById('loadMoreBtn');
     const modal = document.getElementById('imageModal');
@@ -36,16 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     viewAllBtn.addEventListener('click', () => {
         viewAllBtn.classList.add('active');
-        viewRecentBtn.classList.remove('active');
         currentView = 'all';
-        currentPage = 1;
-        loadImages(true);
-    });
-
-    viewRecentBtn.addEventListener('click', () => {
-        viewRecentBtn.classList.add('active');
-        viewAllBtn.classList.remove('active');
-        currentView = 'recent';
         currentPage = 1;
         loadImages(true);
     });
@@ -120,7 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
         card.className = 'gallery-card';
 
         const img = document.createElement('img');
-        img.src = image.url;
+        img.src = image.url.replace('/api/api/', '/api/');
         img.alt = image.name;
         img.loading = 'lazy';
 
@@ -133,7 +123,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         card.addEventListener('click', () => {
             modal.style.display = "block";
-            modalImg.src = image.url;
+            modalImg.src = image.url.replace('/api/api/', '/api/');
             modalImg.dataset.imageName = image.name;
             imageDetails.textContent = `Name: ${image.name}
             Uploaded: ${new Date(image.uploadDate).toLocaleString()}`;

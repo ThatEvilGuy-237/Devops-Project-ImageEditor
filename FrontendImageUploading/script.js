@@ -228,7 +228,7 @@ document.addEventListener('DOMContentLoaded', () => {
             uploadBtn.disabled = true;
             uploadBtn.textContent = 'Uploading...';
 
-            const response = await fetch('http://localhost:3000/api/images', {
+            const response = await fetch(`${process.env.SERVER_URL}/api/images`, {
                 method: 'POST',
                 body: formData
             });
@@ -255,6 +255,35 @@ document.addEventListener('DOMContentLoaded', () => {
             uploadBtn.textContent = 'Upload Image';
         }
     });
+
+    async function loadRecentImages() {
+        try {
+            const response = await fetch(`${process.env.SERVER_URL}/api/images?view=recent&page=1&pageSize=8`);
+            const data = await response.json();
+
+            recentImages.innerHTML = '';
+            data.images.forEach(image => {
+                const imageCard = document.createElement('div');
+                imageCard.className = 'gallery-card';
+                
+                const img = document.createElement('img');
+                img.src = image.url.replace('/api/api/', '/api/');
+                img.alt = image.name;
+                img.loading = 'lazy';
+
+                imageCard.appendChild(img);
+                imageCard.addEventListener('click', () => {
+                    modal.style.display = "block";
+                    modalImg.src = image.url.replace('/api/api/', '/api/');
+                    modalImg.dataset.imageName = image.name;
+                });
+
+                recentImages.appendChild(imageCard);
+            });
+        } catch (error) {
+            console.error('Error loading recent images:', error);
+        }
+    }
 
     function updateRecentUploads() {
         recentImages.innerHTML = '';
@@ -326,5 +355,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initialize
     uploadBtn.disabled = true;
+    loadRecentImages(); // Initialize recent uploads section
     updateRecentUploads(); // Initialize recent uploads section
 });
