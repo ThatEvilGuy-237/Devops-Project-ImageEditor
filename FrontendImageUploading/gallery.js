@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     // API base URL
-    const API_URL = 'http://localhost:3000';
+    const API_URL = '/api/images';
 
     const searchInput = document.getElementById('searchInput');
     const searchBtn = document.getElementById('searchBtn');
@@ -61,7 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (confirm('Are you sure you want to delete this image?')) {
             try {
-                const response = await fetch(`${API_URL}/api/images/${imageName}`, {
+                const response = await fetch(`${API_URL}/${imageName}`, {
                     method: 'DELETE'
                 });
 
@@ -155,7 +155,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 params.append('search', currentSearch);
             }
 
-            const response = await fetch(`${API_URL}/api/images?${params}`);
+            const response = await fetch(`${API_URL}?${params}`);
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }

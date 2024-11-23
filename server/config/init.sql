@@ -1,5 +1,5 @@
-CREATE DATABASE IF NOT EXISTS image_editor;
-USE image_editor;
+CREATE DATABASE IF NOT EXISTS imageeditor;
+USE imageeditor;
 
 CREATE TABLE IF NOT EXISTS images (
     id INT AUTO_INCREMENT PRIMARY KEY,

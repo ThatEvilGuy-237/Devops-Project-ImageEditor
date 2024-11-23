@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     // API base URL
-    const API_URL = 'http://localhost:3000';
+    const API_URL = '/api';
 
     // Main image elements
     const mainDropZone = document.getElementById('mainDropZone');
@@ -209,7 +209,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function loadRecentImages() {
         try {
-            const response = await fetch(`${API_URL}/api/images?view=recent&page=1&pageSize=8`);
+            const response = await fetch(`${API_URL}/images?view=recent&page=1&pageSize=8`);
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
@@ -383,7 +383,7 @@ document.addEventListener('DOMContentLoaded', () => {
             uploadBtn.disabled = true;
             uploadBtn.textContent = 'Uploading...';
 
-            const response = await fetch(`${API_URL}/api/images`, {
+            const response = await fetch(`${API_URL}/images`, {
                 method: 'POST',
                 body: formData
             });
