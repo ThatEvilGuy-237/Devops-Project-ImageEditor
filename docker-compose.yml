@@ -6,24 +6,42 @@ services:
     build: 
       context: ./FrontendImageUploading
       dockerfile: Dockerfile
-    ports:
-      - "80:80"
-    depends_on:
-      - backend
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend.rule=Host(`imageeditor.localhost`) && !PathPrefix(`/api`)"
+      - "traefik.http.routers.frontend.entrypoints=web"
+      - "traefik.http.services.frontend.loadbalancer.server.port=80"
     volumes:
       - ./server/uploads:/usr/share/nginx/html/uploads
+    networks:
+      - traefik-public
+      - backend-network
+    depends_on:
+      - backend
 
   backend:
     container_name: Backend
     build: 
       context: ./server
       dockerfile: Dockerfile
-    ports:
-      - "3000:3000"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend.rule=Host(`imageeditor.localhost`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.backend.entrypoints=web"
+      - "traefik.http.services.backend.loadbalancer.server.port=3000"
+      - "traefik.http.middlewares.cors-backend.headers.accessControlAllowMethods=GET,POST,PUT,DELETE,OPTIONS"
+      - "traefik.http.middlewares.cors-backend.headers.accessControlAllowOriginList=*"
+      - "traefik.http.middlewares.cors-backend.headers.accessControlAllowHeaders=*"
+      - "traefik.http.middlewares.cors-backend.headers.accessControlMaxAge=100"
+      - "traefik.http.middlewares.cors-backend.headers.addVaryHeader=true"
+      - "traefik.http.routers.backend.middlewares=cors-backend"
     env_file:
       - ./server/.env
     volumes:
       - ./server/uploads:/app/uploads
+    networks:
+      - traefik-public
+      - backend-network
     depends_on:
       - db
 
@@ -35,11 +53,17 @@ services:
       MYSQL_DATABASE: ${MYSQL_DATABASE}
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+
     volumes:
       - mysql_data:/var/lib/mysql
-      - ./server/config/init.sql:/docker-entrypoint-initdb.d/init.sql
-    ports:
-      - "3306:3306"
+    networks:
+      - backend-network
+
+networks:
+  traefik-public:
+    external: true
+  backend-network:
+    driver: bridge
 
 volumes:
   mysql_data:
