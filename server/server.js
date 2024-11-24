@@ -18,6 +18,9 @@ initializeDatabase().then(() => {
 
     // Serve static files from the FrontendImageUploading directory
     app.use(express.static(path.join(__dirname, '..', 'FrontendImageUploading')));
+    
+    // Serve uploaded images from the uploads directory
+    app.use('/uploads', express.static(process.env.UPLOAD_DIR || path.join(__dirname, 'uploads')));
 
     // Base path for API
     app.use('/api', helloController);

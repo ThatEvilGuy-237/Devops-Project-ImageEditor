@@ -76,6 +76,14 @@ router.get('/images', async (req, res) => {
             result = await ImageModel.getAll(page, pageSize, search);
         }
 
+        // Transform the image URLs to use the /uploads path
+        if (result.images) {
+            result.images = result.images.map(img => ({
+                ...img,
+                url: `/uploads/${img.filename}`
+            }));
+        }
+
         console.log('Sending response:', result);
         res.json(result);
     } catch (error) {
@@ -151,7 +159,7 @@ router.post('/images', upload, async (req, res) => {
 
         // Add text if provided
         if (req.body.text) {
-            const fontSize = parseInt(req.body.fontSize) || 40;
+            const fontSize = parseInt(req.body.fontSize) || 300;
             const textPadding = parseInt(req.body.textPadding) || 10;
             const verticalPosition = parseInt(req.body.verticalPosition) || 95;
             
@@ -162,54 +170,40 @@ router.post('/images', upload, async (req, res) => {
                 position: verticalPosition
             };
 
-            const svgText = Buffer.from(`
+            // Calculate font size relative to image width
+            const scaledFontSize = Math.min(fontSize, metadata.width / 3);
+            
+            // Calculate padding and position
+            const horizontalPadding = Math.floor(metadata.width * textPadding / 100);
+            const verticalOffset = Math.floor(metadata.height * verticalPosition / 100);
+
+            // Create text overlay
+            const textSvg = Buffer.from(`
                 <svg width="${metadata.width}" height="${metadata.height}">
-                    <defs>
-                        <filter id="outline" x="-20%" y="-20%" width="140%" height="140%">
-                            <feMorphology operator="dilate" radius="2" in="SourceAlpha" result="thicken" />
-                            <feGaussianBlur in="thicken" stdDeviation="1" result="blurred"/>
-                            <feFlood flood-color="black" result="glowColor" />
-                            <feComposite in="glowColor" in2="blurred" operator="in" result="softGlow_colored"/>
-                            <feMerge>
-                                <feMergeNode in="softGlow_colored"/>
-                                <feMergeNode in="SourceGraphic"/>
-                            </feMerge>
-                        </filter>
-                    </defs>
-                    <style>
-                        .title { 
-                            fill: white; 
-                            font-size: ${fontSize}px; 
-                            font-weight: bold;
-                            font-family: Arial, sans-serif;
-                            filter: url(#outline);
-                        }
-                    </style>
                     <text 
                         x="50%" 
-                        y="${verticalPosition}%"
+                        y="${verticalOffset}"
+                        font-family="sans-serif"
+                        font-size="${scaledFontSize}px"
+                        fill="white"
+                        stroke="black"
+                        stroke-width="2"
+                        font-weight="bold"
                         text-anchor="middle"
-                        class="title"
-                        transform="translate(0, -${fontSize/2})"
+                        dominant-baseline="middle"
                     >${req.body.text}</text>
-                </svg>`);
-
-            // Create a new Sharp instance for the SVG
-            const svgBuffer = await sharp(svgText)
-                .resize(metadata.width, metadata.height, { fit: 'fill' })
-                .toBuffer();
+                </svg>
+            `);
 
             compositeOperations.push({
-                input: svgBuffer,
-                top: 0,
-                left: 0,
+                input: textSvg,
                 blend: 'over'
             });
         }
 
-        // Apply all composite operations
+        // Apply all composite operations to the image
         if (compositeOperations.length > 0) {
-            imageBuffer = await sharpImage
+            imageBuffer = await sharp(imageBuffer)
                 .composite(compositeOperations)
                 .toBuffer();
         }
@@ -220,31 +214,21 @@ router.post('/images', upload, async (req, res) => {
             .toFormat(fileExt.substring(1))
             .toFile(outputPath);
 
-        // Save to database
-        const imageData = {
+        // Save image metadata to database
+        await ImageModel.create({
             filename: imageName,
             originalName: mainImage.originalname,
             path: outputPath,
-            dimensions: settings.dimensions || null,
-            overlay: settings.overlay || null,
-            text: settings.text || null
-        };
-
-        console.log('Saving image data to database:', JSON.stringify(imageData, null, 2));
-
-        try {
-            await ImageModel.create(imageData);
-            console.log('Successfully saved image data to database');
-        } catch (error) {
-            console.error('Error saving to database:', error);
-            // Continue even if database save fails
-        }
+            dimensions: settings.dimensions,
+            overlay: settings.overlay,
+            text: settings.text
+        });
 
         res.json({
-            message: 'Image uploaded successfully',
-            name: imageName,
-            url: `${process.env.SERVER_URL}/api/images/${imageName}`,
-            settings: settings
+            success: true,
+            filename: imageName,
+            url: `/uploads/${imageName}`,
+            settings
         });
     } catch (error) {
         console.error('Error processing image:', error);

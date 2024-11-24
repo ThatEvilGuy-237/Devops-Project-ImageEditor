@@ -72,7 +72,8 @@ class ImageModel {
 
                     const processedImage = {
                         name: row.filename,
-                        url: `${process.env.SERVER_URL}/api/images/${row.filename}`,
+                        filename: row.filename,
+                        url: `/uploads/${row.filename}`,
                         uploadDate: row.upload_date,
                         settings: { dimensions, overlay, text }
                     };
@@ -137,7 +138,8 @@ class ImageModel {
 
                     const processedImage = {
                         name: row.filename,
-                        url: `${process.env.SERVER_URL}/api/images/${row.filename}`,
+                        filename: row.filename,
+                        url: `/uploads/${row.filename}`,
                         uploadDate: row.upload_date,
                         settings: { dimensions, overlay, text }
                     };

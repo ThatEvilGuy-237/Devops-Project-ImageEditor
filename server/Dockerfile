@@ -2,8 +2,13 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-RUN apk add --no-cache netcat-openbsd
-# install packlages
+RUN apk add --no-cache netcat-openbsd \
+    fontconfig \
+    freetype \
+    freetype-dev \
+    ttf-dejavu
+
+# install packages
 COPY package*.json ./
 RUN npm install
 

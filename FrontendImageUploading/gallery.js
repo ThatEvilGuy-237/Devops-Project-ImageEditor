@@ -192,28 +192,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function createImageCard(image) {
         const card = document.createElement('div');
-        card.className = 'gallery-card';
-
+        card.className = 'gallery-item';
+        
         const img = document.createElement('img');
-        img.src = image.url;
+        img.src = image.url; 
         img.alt = image.name;
         img.loading = 'lazy';
-
-        const details = document.createElement('div');
-        details.className = 'image-card-details';
-        details.textContent = image.name;
-
-        card.appendChild(img);
-        card.appendChild(details);
-
-        card.addEventListener('click', () => {
-            console.log('Displaying image details:', JSON.stringify(image, null, 2));
+        
+        img.onclick = () => {
             modal.style.display = "block";
-            modalImg.src = image.url;
-            modalImg.dataset.imageName = image.name;
+            modalImg.src = image.url; 
+            modalImg.dataset.imageName = image.filename;
             formatDetails(image);
-        });
-
+        };
+        
+        card.appendChild(img);
         return card;
     }
 });
