@@ -33,25 +33,33 @@ pipeline {
                     sh 'npm install'
                     echo 'Backend is a Node.js server, no build required'
                     
-                    // Start the server in the background
-                    sh 'node server.js & echo $! > .nodeTest'
-                    
-                    // Wait and check if server is ready
+                    // Start the server in the background and capture logs
                     sh '''
-                        echo "Waiting for server to start..."
+                        # Start server with output to log file
+                        node server.js > server.log 2>&1 & echo $! > .nodeTest
+                        
+                        echo "Starting server and waiting for it to be ready..."
                         MAX_ATTEMPTS=20
                         COUNTER=0
                         
                         while [ $COUNTER -lt $MAX_ATTEMPTS ]; do
                             echo "Attempt $((COUNTER+1)): Checking if server is up..."
+                            
+                            # Show the current server logs
+                            echo "=== Server Logs ==="
+                            cat server.log
+                            echo "================="
+                            
                             if curl -s http://localhost:3000/ > /dev/null; then
                                 echo "Server is up!"
+                                lsof -i :3000 || echo "Port 3000 is free"
                                 break
                             fi
                             
                             COUNTER=$((COUNTER+1))
                             if [ $COUNTER -eq $MAX_ATTEMPTS ]; then
                                 echo "Server failed to start after $MAX_ATTEMPTS attempts"
+                                cat server.log
                                 exit 1
                             fi
                             echo "Server not ready, waiting 2s..."
@@ -69,10 +77,11 @@ pipeline {
                         # Test API endpoint
                         echo "Testing API endpoint..."
                         curl -f http://localhost:3000/api/hello || exit 1
+                        
+                        # Cleanup
+                        kill $(cat .nodeTest)
+                        rm .nodeTest server.log
                     '''
-                    
-                    // Stop the server
-                    sh 'kill $(cat .nodeTest) && rm .nodeTest'
                 }
             }
         }
