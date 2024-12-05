@@ -39,17 +39,23 @@ pipeline {
                     // Wait and check if server is ready
                     sh '''
                         echo "Waiting for server to start..."
-                        for i in {1..20}; do
-                            if nc -z localhost 3000; then
+                        MAX_ATTEMPTS=20
+                        COUNTER=0
+                        
+                        while [ $COUNTER -lt $MAX_ATTEMPTS ]; do
+                            echo "Attempt $((COUNTER+1)): Checking if server is up..."
+                            if curl -s http://localhost:3000/ > /dev/null; then
                                 echo "Server is up!"
                                 break
                             fi
-                            echo "Attempt $i: Server not ready yet... (waot 2s)"
-                            sleep 2
-                            if [ $i -eq 30 ]; then
-                                echo "Server failed to start after 20 trys"
+                            
+                            COUNTER=$((COUNTER+1))
+                            if [ $COUNTER -eq $MAX_ATTEMPTS ]; then
+                                echo "Server failed to start after $MAX_ATTEMPTS attempts"
                                 exit 1
                             fi
+                            echo "Server not ready, waiting 2s..."
+                            sleep 2
                         done
                         
                         # Test main page
