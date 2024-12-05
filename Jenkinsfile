@@ -37,7 +37,6 @@ pipeline {
             // Start the server in the background and capture logs
             sh '''
                 # Create uploads directory
-                mkdir -p $UPLOAD_DIR
                 echo "Upload directory set to: $UPLOAD_DIR"
                 
                 # Start server with output to log file
