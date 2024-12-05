@@ -62,3 +62,14 @@ desktop.ini
 *.webp
 *.ico
 *.svg
+
+# Jenkins Credentials
+jenkins/github-credentials.xml
+jenkins/ssh-credentials.xml
+*.credentials.xml
+
+# Sensitive configuration files
+*.env
+*.secret
+*secret*
+jenkins/ssh/id_ed25519
