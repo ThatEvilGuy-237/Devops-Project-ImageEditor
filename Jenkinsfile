@@ -28,7 +28,7 @@ pipeline {
             }
         }
 
-        stage('Build Backend') {
+       stage('Build Backend') {
     steps {
         dir('server') {
             sh 'npm install'
@@ -38,7 +38,7 @@ pipeline {
             sh '''
                 # Create uploads directory
                 mkdir -p uploads
-                UPLOAD_DIR="$(pwd)/uploads"
+                export UPLOAD_DIR="$(pwd)/uploads"
                 echo "Upload directory set to: $UPLOAD_DIR"
                 
                 # Start server with output to log file
@@ -91,6 +91,7 @@ pipeline {
         }
     }
 }
+
 
 
         stage('Build Docker Images') {
