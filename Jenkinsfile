@@ -10,7 +10,7 @@ pipeline {
         IMAGE_NAME_FRONTEND = 'image-editor-frontend'
         IMAGE_NAME_BACKEND = 'image-editor-backend'
         IMAGE_TAG = "v${BUILD_NUMBER}"
-        UPLOAD_DIR = "$(pwd)/server/uploads"
+        UPLOAD_DIR="/app/uploads"
     }
 
     stages {
@@ -37,8 +37,7 @@ pipeline {
             // Start the server in the background and capture logs
             sh '''
                 # Create uploads directory
-                mkdir -p uploads
-                export UPLOAD_DIR="/app/uploads"
+                mkdir -p $UPLOAD_DIR
                 echo "Upload directory set to: $UPLOAD_DIR"
                 
                 # Start server with output to log file
