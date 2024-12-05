@@ -10,6 +10,7 @@ pipeline {
         IMAGE_NAME_FRONTEND = 'image-editor-frontend'
         IMAGE_NAME_BACKEND = 'image-editor-backend'
         IMAGE_TAG = "v${BUILD_NUMBER}"
+        UPLOAD_DIR = "$(pwd)/server/uploads"
     }
 
     stages {
@@ -35,8 +36,11 @@ pipeline {
                     
                     // Start the server in the background and capture logs
                     sh '''
-                        # Start server with output to log file
-                        node server.js > server.log 2>&1 & echo $! > .nodeTest
+                        # Create uploads directory
+                        mkdir -p uploads
+                        
+                        # Start server with output to log file and set UPLOAD_DIR
+                        UPLOAD_DIR="$(pwd)/uploads" node server.js > server.log 2>&1 & echo $! > .nodeTest
                         
                         echo "Starting server and waiting for it to be ready..."
                         MAX_ATTEMPTS=20
@@ -81,6 +85,7 @@ pipeline {
                         # Cleanup
                         kill $(cat .nodeTest)
                         rm .nodeTest server.log
+                        rm -rf uploads
                     '''
                 }
             }
