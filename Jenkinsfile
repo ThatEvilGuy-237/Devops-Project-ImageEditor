@@ -38,7 +38,7 @@ pipeline {
             sh '''
                 # Create uploads directory
                 mkdir -p uploads
-                export UPLOAD_DIR="\$(pwd)/uploads"
+                export UPLOAD_DIR="/app/uploads"
                 echo "Upload directory set to: $UPLOAD_DIR"
                 
                 # Start server with output to log file
