@@ -22,8 +22,7 @@ pipeline {
         stage('Build Frontend') {
             steps {
                 dir('FrontendImageUploading') {
-                    sh 'npm install'
-                    sh 'npm run build'
+                    echo 'Frontend is static html page. no need for build -_-'
                 }
             }
         }
