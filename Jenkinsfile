@@ -38,9 +38,11 @@ pipeline {
                     sh '''
                         # Create uploads directory
                         mkdir -p uploads
+                        export UPLOAD_DIR="$(pwd)/uploads"
+                        echo "Upload directory set to: $UPLOAD_DIR"
                         
-                        # Start server with output to log file and set UPLOAD_DIR
-                        UPLOAD_DIR="$(pwd)/uploads" node server.js > server.log 2>&1 & echo $! > .nodeTest
+                        # Start server with output to log file
+                        node server.js > server.log 2>&1 & echo $! > .nodeTest
                         
                         echo "Starting server and waiting for it to be ready..."
                         MAX_ATTEMPTS=20
