@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    tools {
+        nodejs 'NodeJS 18'
+    }
+
     environment {
         DOCKER_REGISTRY = 'ghcr.io/thatevilguy-237'
         IMAGE_NAME_FRONTEND = 'image-editor-frontend'
