@@ -31,7 +31,29 @@ pipeline {
             steps {
                 dir('server') {
                     sh 'npm install'
-                    sh 'npm run build'
+                    echo 'Backend is a Node.js server, no build required'
+                    
+                    // Start the server in the background
+                    sh 'node server.js & echo $! > .nodeTest'
+                    
+                    // Wait for server to start and test it
+                    sh 'sleep 6'
+                    sh '''
+                        # Test main page
+                        echo "Testing main page..."
+                        curl -f http://localhost:3000/ || exit 1
+                        
+                        # Test gallery page
+                        echo "Testing gallery page..."
+                        curl -f http://localhost:3000/gallery.html || exit 1
+                        
+                        # Test API endpoint
+                        echo "Testing API endpoint..."
+                        curl -f http://localhost:3000/api/hello || exit 1
+                    '''
+                    
+                    // Stop the server
+                    sh 'kill $(cat .nodeTest) && rm .nodeTest'
                 }
             }
         }
