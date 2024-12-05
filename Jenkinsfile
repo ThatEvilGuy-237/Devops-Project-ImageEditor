@@ -36,9 +36,22 @@ pipeline {
                     // Start the server in the background
                     sh 'node server.js & echo $! > .nodeTest'
                     
-                    // Wait for server to start and test it
-                    sh 'sleep 6'
+                    // Wait and check if server is ready
                     sh '''
+                        echo "Waiting for server to start..."
+                        for i in {1..20}; do
+                            if nc -z localhost 3000; then
+                                echo "Server is up!"
+                                break
+                            fi
+                            echo "Attempt $i: Server not ready yet... (waot 2s)"
+                            sleep 2
+                            if [ $i -eq 30 ]; then
+                                echo "Server failed to start after 20 trys"
+                                exit 1
+                            fi
+                        done
+                        
                         # Test main page
                         echo "Testing main page..."
                         curl -f http://localhost:3000/ || exit 1
