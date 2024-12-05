@@ -10,7 +10,7 @@ pipeline {
         IMAGE_NAME_FRONTEND = 'image-editor-frontend'
         IMAGE_NAME_BACKEND = 'image-editor-backend'
         IMAGE_TAG = "v${BUILD_NUMBER}"
-        UPLOAD_DIR="/app/uploads"
+        UPLOAD_DIR="./app/uploads"
     }
 
     stages {

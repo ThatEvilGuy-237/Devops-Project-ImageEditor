@@ -43,7 +43,7 @@ function getFileExtension(mimetype) {
 }
 
 // Ensure upload directory exists
-const uploadDir = process.env.UPLOAD_DIR;
+const uploadDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
 }
