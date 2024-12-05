@@ -28,7 +28,18 @@ pipeline {
                 }
             }
         }
-
+        stage('Install Docker Compose') {
+            steps {
+                sh '''
+                    # Check if Docker Compose is installed, if not install it
+                    if ! command -v docker-compose &>/dev/null; then
+                        echo "Docker Compose not found. Installing..."
+                        curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+                        chmod +x /usr/local/bin/docker-compose
+                    fi
+                '''
+            }
+        }
         stage('Start MySQL Database') {
             steps {
                 script {
