@@ -9,3 +9,21 @@ http:
       loadBalancer:
         servers:
           - url: "http://backend:3000"
+
+    jenkins:
+      loadBalancer:
+        servers:
+          - url: "http://jenkins:8080"
+
+  routers:
+    jenkins:
+      rule: "PathPrefix(`/jenkins`)"
+      service: jenkins
+      middlewares:
+        - "jenkins-strip"
+
+  middlewares:
+    jenkins-strip:
+      stripPrefix:
+        prefixes: 
+          - "/jenkins"
