@@ -40,7 +40,7 @@ pipeline {
                         string(credentialsId: 'MYSQL_DATABASE', variable: 'MYSQL_DATABASE')
                     ]) {
                         echo "Starting MySQL container with docker-compose"
-                        sh '''
+                        sh '''  
                             # Export environment variables for docker-compose
                             export MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
                             export MYSQL_DATABASE=${MYSQL_DATABASE}
@@ -48,7 +48,7 @@ pipeline {
                             export MYSQL_PASSWORD=${MYSQL_PASSWORD}
 
                             # Bring up the containers using docker-compose
-                            docker-compose -f ${DOCKER_COMPOSE_FILE} up -d
+                            docker compose -f ${DOCKER_COMPOSE_FILE} up -d
                         '''
                     }
                 }
