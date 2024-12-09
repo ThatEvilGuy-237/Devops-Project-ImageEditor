@@ -1,0 +1,25 @@
+
+entryPoints:
+  web:
+    address: ":80"
+    http:
+      redirections:
+        entrypoint:
+          to: websecure
+          scheme: https
+
+  websecure:
+    address: ":443"
+
+certificatesResolvers:
+  letsencrypt:
+    acme:
+      email: brits68@gmail.com
+      storage: /ssl-certs/acme.json
+      httpChallenge:
+        entryPoint: web
+providers:
+  docker:
+    network: traefik-public
+api:
+  dashboard: true
