@@ -72,4 +72,4 @@ jenkins/ssh-credentials.xml
 *.env
 *.secret
 *secret*
-jenkins/ssh/id_ed25519
+jenkins/ssh/
