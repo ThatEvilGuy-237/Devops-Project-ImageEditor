@@ -7,16 +7,15 @@ services:
       context: ./FrontendImageUploading
       dockerfile: Dockerfile
     labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.frontend.rule=Host(`${HOST_ADDRESS}`)"
-      - "traefik.http.services.frontend.loadbalancer.server.port=80"
+      - "traefik.http.routers.todo-app.rule=Host(`${HOST_ADDRESS}`) && !PathPrefix(`/api`)" # evrthing but api
+      - "traefik.http.routers.todo-app.tls=true"
+      - "traefik.http.routers.todo-app.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.todo-app.entrypoints=websecure"
     volumes:
       - ./server/uploads:/usr/share/nginx/html/uploads
     networks:
       - traefik-public
       - backend-network
-    depends_on:
-      - backend
 
   backend:
     container_name: Backend
@@ -24,9 +23,9 @@ services:
       context: ./server
       dockerfile: Dockerfile
     labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.backend.rule=Host(`${HOST_ADDRESS}`) && PathPrefix(`/api`)"
-      - "traefik.http.services.backend.loadbalancer.server.port=3000"
+      - "traefik.http.routers.todo-api.rule=Host(`${HOST_ADDRESS}`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.todo-api.tls=true"
+      - "traefik.http.routers.todo-api.tls.certresolver=letsencrypt"
     volumes:
       - ./server/uploads:/app/uploads
     networks:

@@ -1,18 +1,28 @@
 version: '3'
+
 services:
   traefik:
     image: traefik:v2.10
     container_name: traefik
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.network=traefik-public"
+      - "--entrypoints.web.address=:80"
+      - "--log.level=DEBUG"
     ports:
       - "80:80"
-      - "443:443"
       - "8080:8080"  # Traefik dashboard
     volumes:
       - "./traefik.yml:/etc/traefik/traefik.yml"
       - "./letsencrypt-certs:/ssl-certs"
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
     labels:
+      - "traefik.http.routers.dashboard.rule=Host(`image-editor-devops.mooo.com`)"
       - "traefik.http.routers.dashboard.service=api@internal"
+      # - "traefik.http.routers.dashboard.middlewares=auth"
+      # - "traefik.http.middlewares.auth.basicauth.users="
       - "traefik.http.routers.dashboard.tls=true"
       - "traefik.http.routers.dashboard.tls.certresolver=letsencrypt"
       - "traefik.http.routers.dashboard.entrypoints=websecure"
