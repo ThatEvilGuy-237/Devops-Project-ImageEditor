@@ -1,11 +1,18 @@
 version: '3'
+
 services:
   traefik:
     image: traefik:v2.10
     container_name: traefik
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.network=traefik-public"
+      - "--entrypoints.web.address=:80"
+      - "--log.level=DEBUG"
     ports:
       - "80:80"
-      - "443:443"
       - "8080:8080"  # Traefik dashboard
     volumes:
       - "./traefik.yml:/etc/traefik/traefik.yml"
