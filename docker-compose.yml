@@ -4,15 +4,15 @@ services:
   frontend:
     container_name: Frontend
     build: 
-      context: ./FrontendImageUploading
+      context: ./projectmap/FrontendImageUploading
       dockerfile: Dockerfile
     labels:
-      - "traefik.http.routers.todo-app.rule=Host(`${HOST_ADDRESS}`) && !PathPrefix(`/api`)" # evrthing but api
+      - "traefik.http.routers.todo-app.rule=Host(`${HOST_ADDRESS}`) && !PathPrefix(`/api`)"
       - "traefik.http.routers.todo-app.tls=true"
       - "traefik.http.routers.todo-app.tls.certresolver=letsencrypt"
       - "traefik.http.routers.todo-app.entrypoints=websecure"
     volumes:
-      - ./server/uploads:/usr/share/nginx/html/uploads
+      - ./projectmap/server/uploads:/usr/share/nginx/html/uploads
     networks:
       - traefik-public
       - backend-network
@@ -20,14 +20,14 @@ services:
   backend:
     container_name: Backend
     build: 
-      context: ./server
+      context: ./projectmap/server
       dockerfile: Dockerfile
     labels:
       - "traefik.http.routers.todo-api.rule=Host(`${HOST_ADDRESS}`) && PathPrefix(`/api`)"
       - "traefik.http.routers.todo-api.tls=true"
       - "traefik.http.routers.todo-api.tls.certresolver=letsencrypt"
     volumes:
-      - ./server/uploads:/uploads
+      - ./projectmap/server/uploads:/uploads
     networks:
       - traefik-public
       - backend-network

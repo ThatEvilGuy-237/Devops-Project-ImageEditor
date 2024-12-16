@@ -73,4 +73,5 @@ jenkins/ssh-credentials.xml
 *.secret
 *secret*
 jenkins/ssh/
-traefik/letsencrypt-certs/acme.json
+*/letsencrypt-certs/acme.json
+*/letsencrypt-certs/*
