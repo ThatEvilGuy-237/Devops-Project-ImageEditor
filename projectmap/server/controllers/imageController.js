@@ -43,7 +43,8 @@ function getFileExtension(mimetype) {
 }
 
 // Ensure upload directory exists
-const uploadDir = path.join(__dirname, 'uploads');
+const uploadDir = path.join(__dirname,'..', 'uploads');
+console.log("load:"  + uploadDir);
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
 }
@@ -98,6 +99,7 @@ router.post('/images', upload, async (req, res) => {
         if (!req.files || !req.files.image) {
             return res.status(400).json({ error: 'No main image provided' });
         }
+        console.log(uploadDir);
 
         const mainImage = req.files.image[0];
         const overlayImage = req.files.overlay ? req.files.overlay[0] : null;
@@ -174,7 +176,7 @@ router.post('/images', upload, async (req, res) => {
             const scaledFontSize = Math.min(fontSize, metadata.width / 3);
             
             // Calculate padding and position
-            const horizontalPadding = Math.floor(metadata.width * textPadding / 100);
+            //const horizontalPadding = Math.floor(metadata.width * textPadding / 100);
             const verticalOffset = Math.floor(metadata.height * verticalPosition / 100);
 
             // Create text overlay

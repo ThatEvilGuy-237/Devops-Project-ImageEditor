@@ -27,7 +27,7 @@ services:
       - "traefik.http.routers.todo-api.tls=true"
       - "traefik.http.routers.todo-api.tls.certresolver=letsencrypt"
     volumes:
-      - ./projectmap/server/uploads:/uploads
+      - ./projectmap/server/uploads:/app/uploads
     networks:
       - traefik-public
       - backend-network
