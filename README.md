@@ -23,7 +23,7 @@ The application consists of **three main containers**:
 3. **Database**:  
    - **Image**: MySQL  
    - **Purpose**: Stores metadata related to uploaded images and application settings.  
-   - **Volume**: Maps a virtual volume to persist database data.
+   - **Volume**: Maps a virtual docker volume
 
 ## Prerequisites
 - Node.js
@@ -34,7 +34,7 @@ The application consists of **three main containers**:
 ``` bash
 Project(base)
 ├── extra
-│   ├── docker-compose.yml        # Docker-compose for Portainer
+│   └── docker-compose.yml        # Docker-compose for Portainer
 ├── jenkins                       # Jenkins configuration
 │   └── ssh
 │   └── docker-compose.yml        # Docker-compose for Jenkins
@@ -48,11 +48,11 @@ Project(base)
 │       ├──models
 │       ├── uploads               # Uploads directory volume for images (not virutal)   
 │       └── *.env*                # Project Environment variables
-└── traefik                       # Traefik configuration
-    ├── config
-    └── letsencrypt-certs
-    └── docker-compose.yml        # Docker-compose for Traefik
-└── *.env*                        # Generic Environment variables
+├── traefik                       # Traefik configuration
+│    ├── config
+│    └── letsencrypt-certs
+│    └── docker-compose.yml        # Docker-compose for Traefik
+├── *.env*                        # Generic Environment variables
 └── docker-compose.yml            # Root docker-compose for [backend, database, frontend]
 ```
 
@@ -92,7 +92,7 @@ CORS_ORIGIN=https://my-site-example.com
 ```
 PS: makes sure that you have a domain that you can access and link to your machine. If dont have a domain and want to test your aplication before buying one then you can get a free domains then you can use https://freedns.afraid.org/ to create a custom subdomain.
 
-3. Set up gloabal .env file:
+3. Set up global .env file:
 ```bash
 cd ../../
     └──Project(base)
